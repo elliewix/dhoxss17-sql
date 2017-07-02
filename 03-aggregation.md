@@ -1,4 +1,4 @@
-# 02 Aggregation
+# 03: Aggregation
 
 Aggregating data is at the heart of where SQL's utility will shine.  Crafting aggregation and calculation queries in SQL allows you to also combine in the robust filtering and selection into a single query.  This sounds like a lot of information going into a single query, but the compartmentalized structure of SQL queries maintains a aood amount of readability.
 
@@ -6,9 +6,6 @@ Having all your selection, filtering, aggretation, and other transformation code
 
 At the core of aggregation is to tell you more than just your raw data, and is where you can start answering a lot of questions that you may have.
 
-## `MIN()` and `MAX()`
-
-This will be a new type of item to work with.  We've used `()` before to group queries, but in this context they will have a different meaning. You use these functions inside of your SELECT statement items 
 
 ## `COUNT()`
 
@@ -48,20 +45,6 @@ Let's try moving DISTINCT in with BoxNumber.
 `SELECT COUNT(DISTINCT BoxNumber) FROM pettigrew;`
 
 Good, we have a count of 13 in there, and we know that there are 13 box numbers.
-
-## AS keyword
-
-Take another look at the results that we just got.  The column label for the result is `COUNT(DISTINCT BoxNumber)`.  This may be fine if we're just investigating things, but isn't great if we end up with a larger tool.  By default, whatever piece of SQL code that creates that column in the SELECT statement area will end up as the column name in the table view.  There may also be situations where you might want to change an exising column name to something more descriptive.  
-
-Either way, you can control the header name with the `AS` keyword.  Place this after the column decleration in the `SELECT` area.  Example:  `BoxNumber as box`.
-
-`SELECT DISTINCT BoxNumber as box FROM pettigrew;`
-
-When we run this, we get the same contents as we have before, but now the column header is `box`.  Let's add our COUNT() back in there.
-
-`SELECT COUNT(DISTINCT BoxNumber) as numberOfBoxes FROM pettigrew;`
-
-We can also make these aggregation column names much more specific, so we can remember what they stand for.  Sometimes aggregations or transformations can get lengthy, so you'll want to change them to make your results more readable.
 
 ## `GROUP BY`
 
@@ -103,9 +86,53 @@ Our basic formula is:
 2. Pick the aggregation function you want to do.  Be sure to read the documentation and understand how that function will operate on the data type of the column you're going to give it.
 2. Pick the column that you want to aggregate by (this is usually some categorical variable).  Do remember that this will group by unique content, so if you have typos or uncontrolled values, each unique value will be treated as a unique instance.
 
-Thus our format is `SELECT AGGREGATION_FUNCTION(math_column)
+Thus our aggregation madlib is `SELECT AGGREGATION_FUNCTION(math_column) FROM database GROUP BY categorical_column;`. 
 
+When you're preparing for analysis or even just setting up your data, it can be very helpful to mark up or make a note of the measurement variables and categorical variables within the question that you're trying to answer.
 
+## Adding more functions in
 
+Now that we can group our data around based on the BoxNumber, let's learn more about our folder structures.
 
-select avg(boxCount) from (SELECT count(BoxNumber) as boxCount FROM pettigrew group by BoxNumber);
+As always, start with a broader SQL statement that you know works before adding in more detail.  In this case, let's set up a basic group by statement that counts the number of letters in each Box.  
+
+`SELECT BoxNumber, COUNT(*) FROM pettigrew GROUP BY CAST(BoxNumber as numeric);`
+
+The `CAST()` statement is in there on the BoxNumber grouping so that it sorts correctly.
+
+Since the FolderNumber appears to have meaning within each folder, let's look at the spread of the folder numbers within each box.  Meaning, let's look at what the `min` and `max` values are for each group of box letters.  
+
+Challenge: add `MIN()` AND `MAX()` into your query.  Leave the `COUNT()` column in there.  You should have a table with 13 rows and 4 columns.  
+
+`SELECT BoxNumber, COUNT(*), MIN(CAST(FolderNumber as numeric)), MAX(CAST(FolderNumber as numeric))
+FROM pettigrew GROUP BY CAST(BoxNumber as numeric);`
+
+## Subqueries
+
+There are many calculation functions available, but may not always work for your data.  For example:
+
+`SELECT AVG(CAST(FolderNumber as numeric)) FROM pettigrew;`
+
+This gives a result of `304.02` (rounded), but the meaning is kind of silly. These are just numerical codes for folder numbers, so the average isn't a helpful statistic.
+
+However, what about the average number of letters inside of each box?  That's something a bit more interesting.
+
+This is where sometimes our logic of what's happening doesn't always mesh up with SQL.  We've got a column we're computing the number of letters in each bin.    So your natural instinct might be to put `AVG(COUNT(*))` in there, but that's not exactly what `AVG()` wants.  
+
+There are several other ways to do this, but we're going to highlight the subquery method.
+
+Remember how you can use `()` to declare pieces of boolean queries to be executed before other parts of the query?  You can extend this by embedding other SQL queries into your statement.  For example, if you want to look up the IDs of movies an actor is in, and then look up the earnings for each.  You can use a subquery for that. 
+
+In this case, we want to construct a subquery that produces the column(s) that we want to compute on.
+
+`SELECT count(BoxNumber) AS boxCount FROM pettigrew group by BoxNumber`
+
+The `AS` keyword is here so we can directly reference this column name in our next query.  
+
+Imagine if this result is our table and we want to compute the average?  We'd want `AVG(boxCount)` in this case.  We can then replace our database name with our subquery.
+
+So in our template: `SELECT AVG(boxCount) from (subquery);` we end up with this:
+
+`select AVG(boxCount) from (SELECT count(BoxNumber) as boxCount FROM pettigrew group by BoxNumber);`
+
+Which yields `46.23` (rounded).
