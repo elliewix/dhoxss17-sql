@@ -52,3 +52,7 @@ We can also make these aggregation column names much more specific, so we can re
 ## Summary
 
 We're going to be using these functions more in our next section on aggregation.
+
+## Next up
+
+[Aggregation](03-aggregation.md)

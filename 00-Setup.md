@@ -32,3 +32,7 @@ Inside this repository is the `pettigrew.csv` file.  Be sure that you have acces
 20. Click on Browse & Search, and you should see your data in tabular format.
 
 Phew! Now you can actually start doing stuff.
+
+## Next up
+
+[Selecting Data](01-selecting-data.md)

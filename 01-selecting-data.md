@@ -131,3 +131,7 @@ But note that the order of sorting will be from left to right.
 What have we learned so far about our data from these queries?
 
 Can we construct queries to confirm your observations?
+
+## Next up
+
+[Functions](02-functions.md)
